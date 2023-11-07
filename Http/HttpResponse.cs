@@ -21,7 +21,7 @@ public class HttpResponse
         return new(GetBytes($"""
                              HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}
                              Date: {DateTime.UtcNow:R}
-                             Server: assasinos_Simple_API_Server
+                             Server: assasinos_Simple_Web_Server
                              Content-type: {contentType}; charset=UTF-8
 
                              {content}
@@ -34,11 +34,26 @@ public class HttpResponse
         return responseCode switch
         {
             200 => "OK",
+            201 => "Created",
+            202 => "Accepted",
+            301 => "Moved Permanently",
+            302 => "Found",
+            303 => "See Other",
+            307 => "Temporary Redirect",
             400 => "Bad Request",
             401 => "Unauthorized",
+            403 => "Forbidden",
             404 => "Not Found",
             405 => "Method Not Allowed",
+            406 => "Not Acceptable",
+            409 => "Conflict",
+            410 => "Gone",
+            422 => "Unprocessable Entity",
+            429 => "Too Many Requests",
             500 => "Internal Server Error",
+            502 => "Bad Gateway",
+            503 => "Service Unavailable",
+            504 => "Gateway Timeout",
             _ => "Unknown"
         };
     }
