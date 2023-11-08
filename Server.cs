@@ -35,6 +35,33 @@ public class Server
             throw new Exception($"There was an error registering the route {route}");
         }
     }
+
+    public void RegisterDirectory(string baseRoute = "/" , HttpMethod method = HttpMethod.GET, string path = "pages")
+    {
+        var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+        foreach (var file in files)
+        {
+            var baseFilePath = file.Replace(path, "").Replace("\\","/").Replace(".html", "");
+    
+            
+            var route = string.Empty;
+            
+            //Check for index.html
+            if (Path.GetFileName(file) == "index.html")
+            {
+                route = Path.Combine(baseRoute, baseFilePath.Replace("/index",""));
+                
+                RegisterRoute(route, method, file);
+                continue;
+            }
+
+            route = Path.Combine(baseRoute, baseFilePath);
+            
+            
+            RegisterRoute(route, method, file);
+        }
+    }
+    
     
     
     public void Start()
