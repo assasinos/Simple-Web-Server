@@ -21,17 +21,20 @@ public class HttpResponse
         return new(GetBytes($"""
                              HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}
                              Date: {DateTime.UtcNow:R}
+                             {GetCorsHeaders()}
                              Server: assasinos_Simple_Web_Server
                              Content-type: {contentType}; charset=UTF-8
 
                              {content}
                              """));
     }
+
     public static HttpResponse GetResponse(int responseCode, byte[] bytes, string contentType = MediaTypeNames.Text.Html)
     {
         var responseBytes = GetBytes($"""
                               HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}
                               Date: {DateTime.UtcNow:R}
+                              {GetCorsHeaders()}
                               Server: assasinos_Simple_Web_Server
                               Content-type: {contentType}; charset=UTF-8
 
@@ -40,7 +43,40 @@ public class HttpResponse
         responseBytes.AddRange(bytes);
         return new(responseBytes.ToArray());
     }
-    
+    private static string GetCorsHeaders()
+    {
+        if (Server.Cors == null)
+        {
+            return "";
+        }
+        var cors = Server.Cors;
+        var headers = new StringBuilder();
+        if (cors.AllowOrigin is not null)
+        {
+            headers.Append($"Access-Control-Allow-Origin: {cors.AllowOrigin}\n");
+        }
+        if (cors.AllowMethods is not null)
+        {
+            headers.Append($"Access-Control-Allow-Methods: {cors.AllowMethods}\n");
+        }
+        if (cors.AllowHeaders is not null)
+        {
+            headers.Append($"Access-Control-Allow-Headers: {cors.AllowHeaders}\n");
+        }
+        if (cors.AllowCredentials is not null)
+        {
+            headers.Append($"Access-Control-Allow-Credentials: {cors.AllowCredentials}\n");
+        }
+        if (cors.MaxAge is not null)
+        {
+            headers.Append($"Access-Control-Max-Age: {cors.MaxAge}\n");
+        }
+        if (cors.ExposeHeaders is not null)
+        {
+            headers.Append($"Access-Control-Expose-Headers: {cors.ExposeHeaders}\n");
+        }
+        return headers.ToString().TrimEnd();
+    }
     private static string GetStatusMessage(int responseCode)
     {
         return responseCode switch

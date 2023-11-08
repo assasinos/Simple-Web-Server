@@ -5,6 +5,7 @@ public class HttpRequest : IParsable<HttpRequest>
 {
     public HttpMethod Method { get; set; }
     public string Path { get; set; }
+    //Maybe move these to a headers class or dictionary
     public string? UserAgent { get; set; }
     public string? Accept { get; set; }
     public string? Host { get; set; }
@@ -12,6 +13,7 @@ public class HttpRequest : IParsable<HttpRequest>
     public string? Connection { get; set; }
     public int ContentLength { get; set; }
     public string? ContentType { get; set; }
+    public string? Origin { get; set; }
     public string? Body { get; set; }
 
     private HttpRequest(string methodString, string path)

@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using SimpleApi.Http;
+using SimpleApi.Http.Headers.Response;
 using HttpMethod = SimpleApi.Http.HttpMethod;
 
 namespace SimpleApi;
@@ -12,13 +13,15 @@ public class Server
     private readonly IPAddress _ipAddress;
     private readonly int _port;
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-
+    internal static Cors? Cors ;
+    
     private readonly Dictionary<string,(Func<HttpRequest, HttpResponse> handler, HttpMethod method)> _routes = new();
     
-    public Server(IPAddress ipAddress, int port)
+    public Server(IPAddress ipAddress, int port, Cors? cors = null)
     {
         _ipAddress = ipAddress;
         _port = port;
+        Cors = cors;
     }
 
     public void RegisterRoute(string route, HttpMethod method , Func<HttpRequest, HttpResponse> handler)
