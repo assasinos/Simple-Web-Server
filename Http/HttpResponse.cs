@@ -27,8 +27,20 @@ public class HttpResponse
                              {content}
                              """));
     }
-    
+    public static HttpResponse GetResponse(int responseCode, byte[] bytes, string contentType = MediaTypeNames.Text.Html)
+    {
+        var responseBytes = GetBytes($"""
+                              HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}
+                              Date: {DateTime.UtcNow:R}
+                              Server: assasinos_Simple_Web_Server
+                              Content-type: {contentType}; charset=UTF-8
 
+                              
+                              """).ToList();
+        responseBytes.AddRange(bytes);
+        return new(responseBytes.ToArray());
+    }
+    
     private static string GetStatusMessage(int responseCode)
     {
         return responseCode switch

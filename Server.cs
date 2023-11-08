@@ -23,7 +23,14 @@ public class Server
 
     public void RegisterRoute(string route, HttpMethod method , Func<HttpRequest, HttpResponse> handler)
     {
-        if (!_routes.TryAdd(route, (handler, method)))
+        if (!_routes.TryAdd(route.ToLower(), (handler, method)))
+        {
+            throw new Exception($"There was an error registering the route {route}");
+        }
+    }
+    public void RegisterRoute(string route, HttpMethod method , string path)
+    {
+        if (!_routes.TryAdd(route.ToLower(), (new Func<HttpRequest, HttpResponse>(request => HttpResponse.GetResponse(200,File.ReadAllBytes(path))), method)))
         {
             throw new Exception($"There was an error registering the route {route}");
         }
@@ -43,7 +50,7 @@ public class Server
             while (!_cancellationTokenSource.IsCancellationRequested)
             {
                 // Buffer for reading data
-                var bytes = new byte[256];
+                var bytes = new byte[1024];
                 var data = string.Empty;
                 Debug.WriteLine("Waiting for a Connection...");
 
@@ -61,7 +68,7 @@ public class Server
                 }
                 
                 //404
-                if (!_routes.TryGetValue(request.Path, out var handler))
+                if (!_routes.TryGetValue(request.Path.ToLower(), out var handler))
                 {
                     await socket.SendHttpResponse(HttpResponse.GetResponse(404, ""), _cancellationTokenSource.Token);
                     continue;
