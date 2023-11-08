@@ -16,15 +16,12 @@ public class HttpResponse
     {
         return Encoding.UTF8.GetBytes(response);
     }
+    
     public static HttpResponse GetResponse(int responseCode, string content, string contentType = MediaTypeNames.Text.Html)
     {
         return new(GetBytes($"""
-                             HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}
-                             Date: {DateTime.UtcNow:R}
-                             {GetCorsHeaders()}
-                             Server: assasinos_Simple_Web_Server
-                             Content-type: {contentType}; charset=UTF-8
-
+                             {GetResponseHeaders(responseCode, contentType)}
+                             
                              {content}
                              """));
     }
@@ -32,26 +29,29 @@ public class HttpResponse
     public static HttpResponse GetResponse(int responseCode, byte[] bytes, string contentType = MediaTypeNames.Text.Html)
     {
         var responseBytes = GetBytes($"""
-                              HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}
-                              Date: {DateTime.UtcNow:R}
-                              {GetCorsHeaders()}
-                              Server: assasinos_Simple_Web_Server
-                              Content-type: {contentType}; charset=UTF-8
+                              {GetResponseHeaders(responseCode, contentType)}
 
                               
                               """).ToList();
         responseBytes.AddRange(bytes);
         return new(responseBytes.ToArray());
     }
+
+    private static string GetResponseHeaders(int responseCode, string contentType)
+    {
+        var headers = new StringBuilder();
+        headers.Append($"HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}\n");
+        headers.Append($"Date: {DateTime.UtcNow:R}\n");
+        if (Server.Cors is not null) headers.Append(GetCorsHeaders());
+        headers.Append("Server: assasinos_Simple_Web_Server\n");
+        headers.Append($"Content-type: {contentType}; charset=UTF-8");
+        return headers.ToString();
+    } 
     private static string GetCorsHeaders()
     {
-        if (Server.Cors == null)
-        {
-            return "";
-        }
         var cors = Server.Cors;
         var headers = new StringBuilder();
-        if (cors.AllowOrigin is not null)
+        if (cors!.AllowOrigin is not null)
         {
             headers.Append($"Access-Control-Allow-Origin: {cors.AllowOrigin}\n");
         }
