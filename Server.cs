@@ -30,7 +30,7 @@ public class Server
     }
     public void RegisterRoute(string route, HttpMethod method , string path)
     {
-        if (!_routes.TryAdd(route.ToLower(), (new Func<HttpRequest, HttpResponse>(request => HttpResponse.GetResponse(200,File.ReadAllBytes(path))), method)))
+        if (!_routes.TryAdd(route.ToLower(), ((_ => HttpResponse.GetResponse(200,File.ReadAllBytes(path))), method)))
         {
             throw new Exception($"There was an error registering the route {route}");
         }
@@ -42,9 +42,9 @@ public class Server
         foreach (var file in files)
         {
             var baseFilePath = file.Replace(path, "").Replace("\\","/").Replace(".html", "");
-    
-            
-            var route = string.Empty;
+
+
+            string route;
             
             //Check for index.html
             if (Path.GetFileName(file) == "index.html")
@@ -78,13 +78,12 @@ public class Server
             {
                 // Buffer for reading data
                 var bytes = new byte[1024];
-                var data = string.Empty;
                 Debug.WriteLine("Waiting for a Connection...");
 
                 var socket = await tcpListener.AcceptSocketAsync(_cancellationTokenSource.Token);
                 Debug.WriteLine($"Connection from {socket.RemoteEndPoint}");
                 socket.Receive(bytes);
-                data = Encoding.UTF8.GetString(bytes);
+                var data = Encoding.UTF8.GetString(bytes);
                 Debug.WriteLine($"Received:\n {data}\n");
                 
                 
@@ -108,23 +107,20 @@ public class Server
                     continue;
                 }
 
-                //500 
-                //If something goes wrong with the handler
+                
                 //TODO: ADD logger
-                if (handler.handler is null)
-                {
-                    await socket.SendHttpResponse(HttpResponse.GetResponse(500, "There was an error processing your request"), _cancellationTokenSource.Token);
-                    continue;
-                }
-                
-                
                 try
                 {
                     await socket.SendHttpResponse(handler.handler(request), _cancellationTokenSource.Token);
                 }
                 catch (Exception e)
                 {
+                    #if DEBUG
+                    await socket.SendHttpResponse(HttpResponse.GetResponse(500, $"There was an error processing your request\nError:\n{e}"), _cancellationTokenSource.Token);
+                    #else
                     await socket.SendHttpResponse(HttpResponse.GetResponse(500, "There was an error processing your request"), _cancellationTokenSource.Token);
+                    #endif
+                    
                     continue;
                 }
                 

@@ -5,7 +5,7 @@ namespace SimpleApi.Http;
 
 public class HttpResponse
 {
-    public HttpResponse(byte[] responseBytes)
+    private HttpResponse(byte[] responseBytes)
     {
         this.ResponseBytes = responseBytes;
     }

@@ -1,5 +1,4 @@
-﻿using System.Net;
-
+﻿
 namespace SimpleApi.Http;
 
 public class HttpRequest : IParsable<HttpRequest>
@@ -61,10 +60,11 @@ public class HttpRequest : IParsable<HttpRequest>
     {
         try
         {
+            if (s is null) throw new ArgumentNullException(nameof(s));
             result = Parse(s, provider);
             return true;
         }
-        catch (Exception e)
+        catch
         {
             result = null!;
             return false;
