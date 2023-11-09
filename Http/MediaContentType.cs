@@ -1,4 +1,4 @@
-﻿namespace SimpleApi.Http;
+﻿namespace SimpleWebServer.Http;
 
 public enum MediaContentType 
 {

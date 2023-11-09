@@ -1,7 +1,6 @@
-﻿
-using SimpleApi.Http.Headers.Request;
+﻿using SimpleWebServer.Http.Headers.Request;
 
-namespace SimpleApi.Http;
+namespace SimpleWebServer.Http;
 
 public class HttpRequest : IParsable<HttpRequest>
 {

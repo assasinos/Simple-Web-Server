@@ -1,7 +1,7 @@
 ﻿using System.Net;
-using SimpleApi.Http.Headers.Response;
+using SimpleWebServer.Http.Headers.Response;
 
-namespace SimpleApi.Configuration;
+namespace SimpleWebServer.Configuration;
 
 public class ServerConfiguration
 {
@@ -13,11 +13,6 @@ public class ServerConfiguration
     {
         IpAddress = ipAddress;
         Port = port;
-    }
-    
-    public void UseCors(Cors cors)
-    {
-        Cors = cors;
     }
     
     

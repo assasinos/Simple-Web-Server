@@ -1,9 +1,7 @@
-﻿using System.Diagnostics;
-using System.Net.Sockets;
-using System.Text;
-using SimpleApi.Http;
+﻿using System.Net.Sockets;
+using SimpleWebServer.Http;
 
-namespace SimpleApi;
+namespace SimpleWebServer;
 
 public static class SocketExtension
 {

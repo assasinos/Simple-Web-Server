@@ -1,28 +1,26 @@
 ﻿using System.Diagnostics;
-using System.Net;
-using System.Net.Mime;
 using System.Net.Sockets;
 using System.Text;
-using SimpleApi.Configuration;
-using SimpleApi.Http;
-using SimpleApi.Http.Headers.Response;
-using SimpleApi.Http.Mime;
-using HttpMethod = SimpleApi.Http.HttpMethod;
+using SimpleWebServer.Configuration;
+using SimpleWebServer.Http;
+using SimpleWebServer.Http.Mime;
+using HttpMethod = SimpleWebServer.Http.HttpMethod;
 
-namespace SimpleApi;
+namespace SimpleWebServer;
 
-public class Server
+public class HttpServer
 {
-    public static ServerConfiguration Configuration;
+    internal static ServerConfiguration Configuration = null!;
 
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
     private readonly Dictionary<string, (Func<HttpRequest, HttpResponse> handler, HttpMethod method)> _routes = new();
 
-    public Server(IPAddress ipAddress, int port, Cors? cors = null)
+    internal HttpServer(ServerConfiguration configuration)
     {
-        Configuration = new ServerConfiguration(ipAddress, port);
+        Configuration = configuration;
     }
+
 
     public void RegisterRoute(string route, HttpMethod method, Func<HttpRequest, HttpResponse> handler)
     {

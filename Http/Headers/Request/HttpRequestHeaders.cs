@@ -1,4 +1,6 @@
-﻿namespace SimpleApi.Http.Headers.Request;
+﻿using HttpMethod = SimpleWebServer.Http.HttpMethod;
+
+namespace SimpleWebServer.Http.Headers.Request;
 
 public class HttpRequestHeaders
 {

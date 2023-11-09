@@ -1,7 +1,7 @@
 ﻿
 using System.Net.Mime;
 
-namespace SimpleApi.Http.Mime;
+namespace SimpleWebServer.Http.Mime;
 
 public static class Mime
 {

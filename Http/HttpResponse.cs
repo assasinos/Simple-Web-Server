@@ -1,7 +1,7 @@
 ﻿using System.Net.Mime;
 using System.Text;
 
-namespace SimpleApi.Http;
+namespace SimpleWebServer.Http;
 
 public class HttpResponse
 {
@@ -42,14 +42,14 @@ public class HttpResponse
         var headers = new StringBuilder();
         headers.Append($"HTTP/1.1 {responseCode} {GetStatusMessage(responseCode)}\n");
         headers.Append($"Date: {DateTime.UtcNow:R}\n");
-        if (Server.Configuration.Cors is not null) headers.Append(GetCorsHeaders());
+        if (HttpServer.Configuration.Cors is not null) headers.Append(GetCorsHeaders());
         headers.Append("Server: assasinos_Simple_Web_Server\n");
         headers.Append($"Content-type: {contentType}; charset=UTF-8");
         return headers.ToString();
     } 
     private static string GetCorsHeaders()
     {
-        var cors = Server.Configuration.Cors;
+        var cors = HttpServer.Configuration.Cors;
         var headers = new StringBuilder();
         if (cors!.AllowOrigin is not null)
         {

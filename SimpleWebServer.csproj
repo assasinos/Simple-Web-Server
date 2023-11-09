@@ -4,6 +4,10 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AssemblyName>SimpleWebServer</AssemblyName>
+        <RootNamespace>SimpleWebServer</RootNamespace>
+        <Company>SimpleWebServer</Company>
+        <Product>SimpleWebServer</Product>
     </PropertyGroup>
 
 </Project>

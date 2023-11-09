@@ -1,4 +1,4 @@
-﻿namespace SimpleApi.Http.Headers.Response;
+﻿namespace SimpleWebServer.Http.Headers.Response;
 
 public class Cors
 {
