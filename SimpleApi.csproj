@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Http\Headers\Request\" />
+      <Folder Include="Http\Mime\" />
     </ItemGroup>
 
 </Project>

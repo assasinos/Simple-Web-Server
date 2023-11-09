@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using SimpleApi.Configuration;
 using SimpleApi.Http;
 using SimpleApi.Http.Headers.Response;
 using HttpMethod = SimpleApi.Http.HttpMethod;
@@ -10,18 +11,16 @@ namespace SimpleApi;
 
 public class Server
 {
-    private readonly IPAddress _ipAddress;
-    private readonly int _port;
+
+    public static ServerConfiguration Configuration;
+    
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
-    internal static Cors? Cors ;
     
     private readonly Dictionary<string,(Func<HttpRequest, HttpResponse> handler, HttpMethod method)> _routes = new();
     
     public Server(IPAddress ipAddress, int port, Cors? cors = null)
     {
-        _ipAddress = ipAddress;
-        _port = port;
-        Cors = cors;
+        Configuration = new ServerConfiguration(ipAddress, port);
     }
 
     public void RegisterRoute(string route, HttpMethod method , Func<HttpRequest, HttpResponse> handler)
@@ -31,6 +30,14 @@ public class Server
             throw new Exception($"There was an error registering the route {route}");
         }
     }
+    
+    /// <summary>
+    /// Registers new route
+    /// </summary>
+    /// <param name="route">Route to resource</param>
+    /// <param name="method">HTTP method</param>
+    /// <param name="path">Path to file</param>
+    /// <exception cref="Exception">Throws an exception if route couldn't be registered</exception>
     public void RegisterRoute(string route, HttpMethod method , string path)
     {
         if (!_routes.TryAdd(route.ToLower(), ((_ => HttpResponse.GetResponse(200,File.ReadAllBytes(path))), method)))
@@ -71,7 +78,7 @@ public class Server
     {
         Task.Run(async () =>
         {
-            var tcpListener = new TcpListener(_ipAddress, _port);
+            var tcpListener = new TcpListener(Configuration.IpAddress, Configuration.Port);
 
             tcpListener.Start();
 
@@ -97,14 +104,14 @@ public class Server
                 }
                 
                 //404
-                if (!_routes.TryGetValue(request.Path.ToLower(), out var handler))
+                if (!_routes.TryGetValue(request.Headers.Path.ToLower(), out var handler))
                 {
                     await socket.SendHttpResponse(HttpResponse.GetResponse(404, ""), _cancellationTokenSource.Token);
                     continue;
                 }
                 
                 //405
-                if (handler.method != request.Method)
+                if (handler.method != request.Headers.Method)
                 {
                     await socket.SendHttpResponse(HttpResponse.GetResponse(405, ""), _cancellationTokenSource.Token);
                     continue;
