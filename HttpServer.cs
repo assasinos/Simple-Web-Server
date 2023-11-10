@@ -75,6 +75,7 @@ public class HttpServer
     {
         Task.Run(async () =>
         {
+            var logger = new Logger.Logger(new StreamWriter(Console.OpenStandardOutput()));
             var tcpListener = new TcpListener(Configuration.IpAddress, Configuration.Port);
 
             tcpListener.Start();
@@ -87,7 +88,7 @@ public class HttpServer
                 Debug.WriteLine("Waiting for a Connection...");
 
                 var socket = await tcpListener.AcceptSocketAsync(_cancellationTokenSource.Token);
-                Debug.WriteLine($"Connection from {socket.RemoteEndPoint}");
+                logger.LogDebug($"Connection accepted from {socket.RemoteEndPoint}");
                 socket.Receive(bytes);
                 var data = Encoding.UTF8.GetString(bytes);
                 Debug.WriteLine($"Received:\n {data}\n");
