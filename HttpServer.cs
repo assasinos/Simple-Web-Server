@@ -4,6 +4,7 @@ using System.Text;
 using SimpleWebServer.Configuration;
 using SimpleWebServer.Http;
 using SimpleWebServer.Http.Mime;
+using SimpleWebServer.Logging;
 using HttpMethod = SimpleWebServer.Http.HttpMethod;
 
 namespace SimpleWebServer;
@@ -11,6 +12,8 @@ namespace SimpleWebServer;
 public class HttpServer
 {
     internal static ServerConfiguration Configuration = null!;
+
+    public static readonly Logger logger = new Logger();
 
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
@@ -39,7 +42,9 @@ public class HttpServer
     /// <exception cref="Exception">Throws an exception if route couldn't be registered</exception>
     public void RegisterRoute(string route, HttpMethod method, string path)
     {
-        if (!_routes.TryAdd(route.ToLower(), ((_ => HttpResponse.GetResponse(200, File.ReadAllBytes(path),Mime.GetContentType(Path.GetExtension(path)))), method)))
+        if (!_routes.TryAdd(route.ToLower(),
+                ((_ => HttpResponse.GetResponse(200, File.ReadAllBytes(path), Mime.GetContentType(Path.GetExtension(path)))),
+                    method)))
         {
             throw new Exception($"There was an error registering the route {route}");
         }
@@ -56,7 +61,7 @@ public class HttpServer
             string route;
 
             //Check for index.html
-            if (Path.GetFileName(file) == "index.html")
+            if (Path.GetFileName(file).ToLower() == "index.html")
             {
                 route = Path.Combine(baseRoute, baseFilePath.Replace("/index", ""));
                 RegisterRoute(route, method, file);
@@ -75,7 +80,6 @@ public class HttpServer
     {
         Task.Run(async () =>
         {
-            var logger = new Logger.Logger(new StreamWriter(Console.OpenStandardOutput()));
             var tcpListener = new TcpListener(Configuration.IpAddress, Configuration.Port);
 
             tcpListener.Start();
@@ -91,7 +95,7 @@ public class HttpServer
                 logger.LogDebug($"Connection accepted from {socket.RemoteEndPoint}");
                 socket.Receive(bytes);
                 var data = Encoding.UTF8.GetString(bytes);
-                Debug.WriteLine($"Received:\n {data}\n");
+                logger.LogDebug($"Received:\n {data}\n");
 
 
                 if (!HttpRequest.TryParse(data, null, out var request))
@@ -123,6 +127,7 @@ public class HttpServer
                 }
                 catch (Exception e)
                 {
+                    logger.LogError($"There was an error processing request: {e}");
 #if DEBUG
                     await socket.SendHttpResponse(
                         HttpResponse.GetResponse(500, $"There was an error processing your request\nError:\n{e}"),

@@ -1,8 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Net.Sockets;
-using SimpleWebServer.Http;
 
-namespace SimpleWebServer;
+namespace SimpleWebServer.Http;
 
 public static class SocketExtension
 {
@@ -43,9 +42,7 @@ public static class SocketExtension
         }
         catch (Exception e)
         {
-            //TODO: ADD logger
-            //Maybe change this in the future
-            Debug.WriteLine($"There was an error processing request\nError:\n{e}");
+            HttpServer.logger.LogError($"There was an error sending the response: {e}");
             return;
         }
         

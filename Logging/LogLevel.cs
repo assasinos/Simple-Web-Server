@@ -1,4 +1,4 @@
-﻿namespace SimpleWebServer.Logger;
+﻿namespace SimpleWebServer.Logging;
 
 public enum LogLevel
 {
