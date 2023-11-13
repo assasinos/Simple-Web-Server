@@ -42,7 +42,7 @@ public static class SocketExtension
         }
         catch (Exception e)
         {
-            HttpServer.logger.LogError($"There was an error sending the response: {e}");
+            HttpServer.Logger.LogError($"There was an error sending the response: {e}");
             return;
         }
         

@@ -1,6 +1,6 @@
-﻿namespace SimpleWebServer.Logging;
+﻿namespace SimpleWebServer.Services.Logging;
 
-public class Logger
+public class Logger : IService
 {
     private readonly StreamWriter _streamWriter;
     

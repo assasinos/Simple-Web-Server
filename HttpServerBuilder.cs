@@ -1,5 +1,6 @@
 ﻿using SimpleWebServer.Configuration;
 using SimpleWebServer.Http.Headers.Response;
+using SimpleWebServer.Services;
 
 namespace SimpleWebServer;
 
@@ -14,6 +15,11 @@ public class HttpServerBuilder
     public void UseCors(Cors cors)
     {
         Configuration.Cors = cors;
+    }
+    
+    public void RegisterService(IService service)
+    {
+        Configuration.Services.Add(service);
     }
     
     public HttpServer Build()

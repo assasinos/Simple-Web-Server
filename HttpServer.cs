@@ -4,7 +4,9 @@ using System.Text;
 using SimpleWebServer.Configuration;
 using SimpleWebServer.Http;
 using SimpleWebServer.Http.Mime;
-using SimpleWebServer.Logging;
+using SimpleWebServer.Services;
+using SimpleWebServer.Services.Logging;
+using SimpleWebServer.Validation;
 using HttpMethod = SimpleWebServer.Http.HttpMethod;
 
 namespace SimpleWebServer;
@@ -13,21 +15,27 @@ public class HttpServer
 {
     internal static ServerConfiguration Configuration = null!;
 
-    public static readonly Logger logger = new Logger();
+    //Debug logger  
+    public static readonly Logger Logger = new Logger();
 
     private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+    
+    private readonly Dictionary<string, (Delegate handler, HttpMethod method)> _methods = new();
 
-    private readonly Dictionary<string, (Func<HttpRequest, HttpResponse> handler, HttpMethod method)> _routes = new();
 
     internal HttpServer(ServerConfiguration configuration)
     {
         Configuration = configuration;
     }
-
-
-    public void RegisterRoute(string route, HttpMethod method, Func<HttpRequest, HttpResponse> handler)
+    
+    public void RegisterRoute(string route, HttpMethod method, Delegate handler)
     {
-        if (!_routes.TryAdd(route.ToLower(), (handler, method)))
+        //Check if delegate is correct
+        if (!RouteHandlerValidator.ValidateRouteHandler(handler))
+        {
+            throw new Exception($"Route {route} has an invalid handler");
+        }
+        if (!_methods.TryAdd(route.ToLower(), (handler, method)))
         {
             throw new Exception($"There was an error registering the route {route}");
         }
@@ -42,9 +50,7 @@ public class HttpServer
     /// <exception cref="Exception">Throws an exception if route couldn't be registered</exception>
     public void RegisterRoute(string route, HttpMethod method, string path)
     {
-        if (!_routes.TryAdd(route.ToLower(),
-                ((_ => HttpResponse.GetResponse(200, File.ReadAllBytes(path), Mime.GetContentType(Path.GetExtension(path)))),
-                    method)))
+        if (!_methods.TryAdd(route.ToLower(),(()=> HttpResponse.GetResponse(200,File.ReadAllBytes(path),Mime.GetContentType(Path.GetExtension(path))),method)))
         {
             throw new Exception($"There was an error registering the route {route}");
         }
@@ -92,10 +98,10 @@ public class HttpServer
                 Debug.WriteLine("Waiting for a Connection...");
 
                 var socket = await tcpListener.AcceptSocketAsync(_cancellationTokenSource.Token);
-                logger.LogDebug($"Connection accepted from {socket.RemoteEndPoint}");
+                Logger.LogDebug($"Connection accepted from {socket.RemoteEndPoint}");
                 socket.Receive(bytes);
                 var data = Encoding.UTF8.GetString(bytes);
-                logger.LogDebug($"Received:\n {data}\n");
+                Logger.LogDebug($"Received:\n {data}\n");
 
 
                 if (!HttpRequest.TryParse(data, null, out var request))
@@ -106,7 +112,7 @@ public class HttpServer
                 }
 
                 //404
-                if (!_routes.TryGetValue(request.Headers.Path.ToLower(), out var handler))
+                if (!_methods.TryGetValue(request.Headers.Path.ToLower(), out var handler))
                 {
                     await socket.SendHttpResponse(HttpResponse.GetResponse(404, ""), _cancellationTokenSource.Token);
                     continue;
@@ -120,14 +126,37 @@ public class HttpServer
                 }
 
 
-                //TODO: ADD logger
+                
                 try
                 {
-                    await socket.SendHttpResponse(handler.handler(request), _cancellationTokenSource.Token);
+                    var parameters = handler.handler.Method.GetParameters();
+                    var args = new object[parameters.Length];
+                    foreach (var parameterInfo in parameters)
+                    {
+                        //Check if parameter is HttpRequest
+                        if (parameterInfo.ParameterType.IsAssignableFrom(typeof(HttpRequest)))
+                        {
+                            args[parameterInfo.Position] = request;
+                            continue;
+                        }
+                        
+                        //Check if _services contains parameter
+                        var service = Configuration.Services.FirstOrDefault(x => x.GetType() == parameterInfo.ParameterType);
+                        if (service is not null)
+                        {
+                            args[parameterInfo.Position] = service;
+                            continue;
+                        }
+                        //TODO: Add Support for parameters from request (FromBody,FromQuery etc.)
+                        
+                    }
+                    
+                    var response = (HttpResponse) handler.handler.DynamicInvoke(args)!;
+                    await socket.SendHttpResponse(response, _cancellationTokenSource.Token);
                 }
                 catch (Exception e)
                 {
-                    logger.LogError($"There was an error processing request: {e}");
+                    Logger.LogError($"There was an error processing request: {e}");
 #if DEBUG
                     await socket.SendHttpResponse(
                         HttpResponse.GetResponse(500, $"There was an error processing your request\nError:\n{e}"),
