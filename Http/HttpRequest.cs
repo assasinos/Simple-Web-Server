@@ -5,6 +5,7 @@ namespace SimpleWebServer.Http;
 public class HttpRequest : IParsable<HttpRequest>
 {
     public HttpRequestHeaders Headers { get; set; } = new();
+    public string Body { get; set; } = string.Empty;
 
     private HttpRequest(string methodString, string path)
     {
@@ -33,9 +34,9 @@ public class HttpRequest : IParsable<HttpRequest>
             // Empty line is the end of the headers
             if (string.IsNullOrWhiteSpace(line))
             {
-                request.Headers.Body = string.Join(Environment.NewLine, lines.Skip(i + 1));
+                request.Body = string.Join(Environment.NewLine, lines.Skip(i + 1));
                 // Remove trailing null characters
-                request.Headers.Body = request.Headers.Body.TrimEnd((Char)0);
+                request.Body = request.Body.TrimEnd((Char)0);
                 break;
             }
             var header = line.Split(':');
